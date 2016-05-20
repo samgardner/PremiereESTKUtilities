@@ -1,4 +1,4 @@
-﻿Timecode : function(args) {
+﻿var Timecode =  function(args) {
     this.framerate = this.get(args, "framerate", "29.97");
     this.int_framerate = this.getIntFramerate();
     this.drop_frame = this.get(args, "drop_frame", false);
@@ -6,7 +6,7 @@
     this.minutes = false;
     this.seconds = false;
     this.frames = false;
-    this.frame_count = this.get(args, "frame_count", 0);
+    this.frame_count = false;
     this.set(this.get(args, "timecode", 0));
 };
 Timecode.prototype = {
@@ -185,18 +185,12 @@ Timecode.prototype = {
             frame_number = ((hour_frames * hours) + (minute_frames * minutes) + (this.int_framerate * seconds) + frames) - (drop_frames * (total_minutes - Math.floor(total_minutes / 10)));
         return frame_number;
     }
-}
+};
 
 // static methods dealing with timecodes
-Timecode.addTimecodes = function(timecodes) {
-    var newFrameNumber = 0;
-    var parsedFramerate = "";
-    for (var i = 0; i < timecodes.length; i++) {
-        if (parsedFramerate != "" && parsedFramerate != timecodes[i].framerate){
-            throw new Error("Timecode framerates must match to do calculations.");
-        }
-        parsedFramerate = timecodes[i].framerate;
-        newFrameNumber += timecodes[i].frame_count;
+Timecode.addTimecodes = function(timecodeOne, timecodeTwo) {
+    if (timecodeOne.int_framerate != timecodeTwo.int_framerate) {
+       throw new Error("Timecode framerates must match to do calculations."); 
     }
-   return new this({framerate: "25", frame_count: newFrameNumber});
+   return new this({framerate: "25", timecode: (timecodeOne.frame_count + timecodeTwo.frame_count)});
 }
