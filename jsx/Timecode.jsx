@@ -120,6 +120,7 @@ Timecode.prototype = {
         else {
             this.frame_count = (((this.hours * 3600) + (this.minutes * 60) + this.seconds) * this.int_framerate) + this.frames;
         }
+        return this.frame_count;
     },
     add : function(arguments) {
         /*
@@ -182,8 +183,8 @@ Timecode.prototype = {
             hour_frames = this.int_framerate * 60 * 60,
             minute_frames = this.int_framerate * 60,
             total_minutes = (hours * 60) + minutes,
-            frame_number = ((hour_frames * hours) + (minute_frames * minutes) + (this.int_framerate * seconds) + frames) - (drop_frames * (total_minutes - Math.floor(total_minutes / 10)));
-        return frame_number;
+            frame_count = ((hour_frames * hours) + (minute_frames * minutes) + (this.int_framerate * seconds) + frames) - (drop_frames * (total_minutes - Math.floor(total_minutes / 10)));
+        return frame_count;
     }
 };
 
@@ -193,4 +194,11 @@ Timecode.addTimecodes = function(timecodeOne, timecodeTwo) {
        throw new Error("Timecode framerates must match to do calculations."); 
     }
    return new this({framerate: "25", timecode: (timecodeOne.frame_count + timecodeTwo.frame_count)});
+}
+
+Timecode.subtractTimecodes = function(firstTimecode, secondTimecode) {
+    if (firstTimecode.int_framerate != secondTimecode.int_framerate) {
+       throw new Error("Timecode framerates must match to do calculations."); 
+    }
+   return new this({framerate: "25", timecode: (firstTimecode.frame_count - secondTimecode.frame_count)});
 }
