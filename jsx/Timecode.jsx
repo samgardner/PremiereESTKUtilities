@@ -1,4 +1,4 @@
-﻿var Timecode =  function(args) {
+var Timecode =  function(args) {
     this.framerate = this.get(args, "framerate", "29.97");
     this.int_framerate = this.getIntFramerate();
     this.drop_frame = this.get(args, "drop_frame", false);
@@ -106,10 +106,18 @@ Timecode.prototype = {
             this.minutes = (frame_count % (3600 * this.int_framerate)) / (60 * this.int_framerate);
             this.seconds = ((frame_count % (3600 * this.int_framerate)) % (60 * this.int_framerate)) / this.int_framerate;
             this.frames = ((frame_count % (3600 * this.int_framerate)) % (60 * this.int_framerate)) % this.int_framerate;
-            this.hours = Math.floor(this.hours);
-            this.minutes = Math.floor(this.minutes);
-            this.seconds = Math.floor(this.seconds);
-            this.frames = Math.floor(this.frames);
+            
+            if (frame_count < 0 ) {
+                this.hours = Math.abs(Math.ceil(this.hours));
+                this.minutes = Math.abs(Math.ceil(this.minutes));
+                this.seconds = Math.abs(Math.ceil(this.seconds));
+                this.frames = Math.abs(Math.ceil(this.frames));
+            } else {
+                this.hours = Math.floor(this.hours);
+                this.minutes = Math.floor(this.minutes);
+                this.seconds = Math.floor(this.seconds);
+                this.frames =Math.floor(this.frames);
+            }
         }
     },
     timecodeToFrameNumber : function() {
@@ -143,7 +151,8 @@ Timecode.prototype = {
             return pad + Math.floor(number);
         };
         delim = (this.drop_frame) ? ";" : ":";
-        return zeroPad(this.hours) + ":" + zeroPad(this.minutes) + ":" + zeroPad(this.seconds) + delim + zeroPad(this.frames);
+        var sign = (this.frame_count < 0 ) ? "-" : "";
+        return sign+zeroPad(this.hours) + ":" + zeroPad(this.minutes) + ":" + zeroPad(this.seconds) + delim + zeroPad(this.frames);
     },
     frameNumberToDropFrameTimecode : function(frame_number) {
         var d, m,
@@ -190,6 +199,11 @@ Timecode.prototype = {
 
 // static methods dealing with timecodes
 Timecode.addTimecodes = function(timecodeOne, timecodeTwo) {
+    $.writeln(typeof(timecodeOne));
+    if (!(timecodeOne instanceof Timecode && timecodeOne instanceof Timecode)) {
+        timecodeOne = new Timecode({framerate: "25", timecode: timecodeOne});
+        timecodeTwo = new Timecode({framerate: "25", timecode: timecodeTwo});
+    }
     if (timecodeOne.int_framerate != timecodeTwo.int_framerate) {
        throw new Error("Timecode framerates must match to do calculations."); 
     }
@@ -197,6 +211,10 @@ Timecode.addTimecodes = function(timecodeOne, timecodeTwo) {
 }
 
 Timecode.subtractTimecodes = function(firstTimecode, secondTimecode) {
+   if (!(firstTimecode instanceof Timecode && secondTimecode instanceof Timecode)) {
+        firstTimecode = new Timecode({framerate: "25", timecode: firstTimecode});
+        secondTimecode = new Timecode({framerate: "25", timecode: secondTimecode});
+    }
     if (firstTimecode.int_framerate != secondTimecode.int_framerate) {
        throw new Error("Timecode framerates must match to do calculations."); 
     }
